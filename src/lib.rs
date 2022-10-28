@@ -31,7 +31,17 @@ impl CourseExample {
         let account_id: AccountId = env::signer_account_id();
         let deposit: u128 = env::attached_deposit();
         env::log_str(&format!("You have deposited {} NEAR", (deposit / ONE_NEAR ) ));
-        self.storage_deposits.insert(&account_id, &deposit);
+        // Check if the account has already deposited
+        if self.storage_deposits.get(&account_id).is_some() {
+            // If the account has already deposited, add the new deposit to the existing deposit
+            let existing_deposit: u128 = self.storage_deposits.get(&account_id).unwrap();
+            self.storage_deposits.remove(&account_id);
+            self.storage_deposits.insert(&account_id, &(existing_deposit + deposit));
+        } else {
+            // If the account has not deposited, add the new deposit to the storage deposits
+            self.storage_deposits.insert(&account_id, &deposit);
+        }
+        env::log_str(&format!("Your total deposit is {} NEAR", (self.storage_deposits.get(&account_id).unwrap() / ONE_NEAR ) ));
     }
 
     pub fn withdraw_storage(&mut self) {
@@ -43,7 +53,7 @@ impl CourseExample {
         Promise::new(account_id).transfer(deposit);
     }
 
-    pub fn get_get_sum_of_deposits(&self) -> U128 {
+    pub fn get_sum_of_deposits(&self) -> U128 {
         let mut sum: u128 = 0;
         for deposit in self.storage_deposits.values() {
             sum += deposit;
