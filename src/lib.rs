@@ -15,6 +15,7 @@ pub enum StorageKey {
 pub struct CourseExample {
     pub owner_id: AccountId,
     pub storage_deposits: UnorderedMap<AccountId, u128>,
+    pub language_choosen: String,
 }
 
 #[near_bindgen]
@@ -22,7 +23,11 @@ impl CourseExample {
     #[init]
     pub fn new() -> Self {
         assert!(!env::state_exists(), "The contract is already initialized");
-        Self { owner_id: env::signer_account_id(), storage_deposits: UnorderedMap::new(StorageKey::StorageDeposits) }
+        Self { 
+            owner_id: env::signer_account_id(), 
+            storage_deposits: UnorderedMap::new(StorageKey::StorageDeposits),
+            language_choosen: "en".to_string(),
+         }
     }
     
     #[payable]
@@ -60,4 +65,30 @@ impl CourseExample {
         }
         U128(sum)
     }
+
+    pub fn hello_name(&self, name: String) -> String {
+        format!("Hello {}, thank you for joining the course!", name)
+    }
+
+    pub fn toggle_choosen_language(&mut self) -> String {
+        if self.language_choosen == "en".to_string() {
+            self.language_choosen = "tr".to_string();
+        } else {
+            self.language_choosen = "en".to_string();
+        }
+        format!("You have changed the language to {}", self.language_choosen)
+    }
+
+    pub fn hello_name_language(&self, name: String) -> String {
+        let mut hello = "Hello".to_string();
+        if self.language_choosen == "tr" {
+            hello = "selam".to_string();
+        }
+        format!("{} {}", hello, name)
+    }
+
+
+
+
+
 }
